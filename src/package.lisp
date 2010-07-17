@@ -1,7 +1,14 @@
 (defpackage org.iodb.paren-dev
   (:nicknames #:paren-dev)
   (:use :common-lisp :parenscript)
-  (:export))
+  (:export #:dev-scripts
+           #:ws-emulation-swf-truename
+           #:*web-sockets-swf-uri*
+
+           ;; parenscript exports
+           #:*swank-web-socket*
+           #:make-swank-connection
+           #:make-web-socket))
 
 
 
