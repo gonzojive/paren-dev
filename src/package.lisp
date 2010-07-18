@@ -8,6 +8,7 @@
            ;; parenscript exports
            #:*swank-web-socket*
            #:make-swank-connection
+           #:close-swank-connection
            #:make-web-socket))
 
 

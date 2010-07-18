@@ -30,6 +30,18 @@ WebSockets emulation."
 (defvar *swank-web-socket* nil
   "WebSocket used to connect to an instance of swank running on the server.")
 
+(defun close-swank-connection (&optional (ws *swank-web-socket*))
+  (funcall (@ ws "close")))
+
+(defvar *) (defvar **) (defvar ***)
+
+(defun swank-eval-form (form)
+  (with window
+        (setf *** ** ** *)
+        (setf * (eval form))
+        (return *)))
+  
+
 (defun make-swank-connection (&key port hostname)
   (setf port (or port (lisp swank-proxy::*swank-proxy-port*) "12344"))
   (setf hostname (or hostname (@ window 'location 'hostname)  "127.0.0.1"))
@@ -39,8 +51,9 @@ WebSockets emulation."
          (stringify (data)
            (return (funcall (@ *JSON* "stringify") data))))
     
-    (let ((uri (+ "ws://" hostname ":" port "/swank")))
-      (setf *swank-web-socket*
+    (let ((uri (+ "ws://" hostname ":" port "/swank"))
+          (ws nil))
+      (setf ws
             (make-web-socket uri
                              :on-open (lambda ()
                                         (swanklog "Connected to %s" uri))
@@ -49,29 +62,30 @@ WebSockets emulation."
                              :on-error (lambda ()
                                          (swanklog "Error on connection to %s" uri))
                              :on-message (lambda (e)
-                                           (let ((ws (@ e "target")))
-                                             (flet ((send (data)
-                                                      (funcall (@ ws "send") data)))
-                                               (let* ((data (@ e "data"))
-                                                      (data-parsed (json-parse data)))
-                                                 (with-slots ((form "FORM")
-                                                              (id "ID"))
-                                                     data-parsed
-                                                   (try
-                                                    (progn
-                                                      (swanklog "Received message %o" data-parsed)
-                                                      (let* ((evaled (eval form))
-                                                             (outbound-message
-                                                              (stringify (create "OK" t "ID" id "RESULT" evaled))))
-                                                        (send outbound-message)
-                                                        (swanklog "%o" evaled)
-                                                        (swanklog "Sent message %o" data-parsed)))
-                                                    (:catch (e)
-                                                      (swanklog "Eval failed %o" e)
-                                                      (let ((outbound-message
-                                                             (stringify (create "OK" false "ID" id "RESULT" nil
-                                                                                "ERROR" e))))
-                                                        (send outbound-message)
-                                                        (throw e))))))))))))))
+                                           (flet ((send (data)
+                                                    (funcall (@ ws "send") data)))
+                                             (let* ((data (@ e "data"))
+                                                    (data-parsed (json-parse data)))
+                                               (with-slots ((form "FORM")
+                                                            (id "ID"))
+                                                   data-parsed
+                                                 (try
+                                                  (progn
+                                                    (swanklog "Received message %o from %o" data-parsed ws)
+                                                    (let* ((evaled (swank-eval-form form))
+                                                           (outbound-message
+                                                            (stringify (create "OK" t "ID" id "RESULT" evaled))))
+                                                      (send outbound-message)
+                                                      (swanklog "%o" (or evaled "undefined"))
+                                                      (swanklog "Sent message %o" data-parsed)))
+                                                  (:catch (e)
+                                                    (swanklog "Eval failed %o" e)
+                                                    (let ((outbound-message
+                                                           (stringify (create "OK" false "ID" id "RESULT" nil
+                                                                              "ERROR" e))))
+                                                      (send outbound-message)
+                                                      (throw e))))))))))
+      (setf *swank-web-socket* ws)))
+  (return ws))
                                                 
                                                 

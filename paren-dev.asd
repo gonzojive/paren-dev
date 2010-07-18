@@ -36,7 +36,7 @@
                                              (:javascript-file "FABridge")
                                              (:javascript-file "web_socket")
                                              (:static-file "WebSocketMain.swf"))))))))
-  :depends-on (:parenscript))
+  :depends-on (:parenscript :paren-psos))
 
 ; to emit the necessary javascripts:
 ; (with-output-to-string (s)
