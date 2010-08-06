@@ -35,10 +35,22 @@ WebSockets emulation."
 
 (defvar *) (defvar **) (defvar ***)
 
+(defun global-eval (src)
+  "Evals javascript SRC in a global environment, setting globals at
+will and such.
+
+See http://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context"
+  ;; IE be damned, it's breaking chrome to use execScript at all
+;  (if (@ window 'exec-script) ;; IE
+;      (return (funcall (@ window 'exec-script) src))
+  (flet ((fn ()
+           (return (funcall (@ window 'eval 'call) window src))))
+    (return (fn))))
+
 (defun swank-eval-form (form)
   (with window
         (setf *** ** ** *)
-        (setf * (eval form))
+        (setf * (global-eval form))
         (return *)))
   
 
